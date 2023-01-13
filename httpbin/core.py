@@ -196,9 +196,13 @@ empties the input request stream.
   we explicitly deny chunked requests.
 """
 
-
+apikey = "";
 @app.before_request
 def before_request():
+    if  len(apikey) != 0 :
+        if request.headers.get("api-key","") != apikey:
+            return abort(401);
+    
     if request.environ.get("HTTP_TRANSFER_ENCODING", "").lower() == "chunked":
         server = request.environ.get("SERVER_SOFTWARE", "")
         if server.lower().startswith("gunicorn/"):
@@ -1782,5 +1786,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--port", type=int, default=5000)
     parser.add_argument("--host", default="127.0.0.1")
+    parser.add_argument("--apikey", default="")
     args = parser.parse_args()
+    apikey = args.apikey;
     app.run(port=args.port, host=args.host)
